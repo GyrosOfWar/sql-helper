@@ -7,6 +7,22 @@ from langchain.chat_models import ChatOpenAI
 from dotenv import load_dotenv
 import os
 import psycopg
+from psycopg import Cursor
+
+
+def execute_query(cursor: Cursor, query: str):
+    print(f"Executing query:\n{query}")
+
+    cursor.execute(query)
+    results = cursor.fetchmany(10)
+    for row in results:
+        print(row)
+    print("Do you want to see all the results?")
+    answer = input(">> ")
+    if answer.lower() in ["yes", "y"]:
+        results = cursor.fetchall()
+        for row in results:
+            print(row)
 
 
 def main():
@@ -47,17 +63,7 @@ def main():
         with connection.cursor() as cursor:
             while True:
                 try:
-                    print(f"Executing query:\n{query}")
-                    cursor.execute(query)
-                    results = cursor.fetchmany(10)
-                    for row in results:
-                        print(row)
-                    print("Do you want to see all the results?")
-                    answer = input(">> ")
-                    if answer.lower() in ["yes", "y"]:
-                        results = cursor.fetchall()
-                        for row in results:
-                            print(row)
+                    execute_query(cursor, query)
                     break
 
                 except psycopg.ProgrammingError as e:
