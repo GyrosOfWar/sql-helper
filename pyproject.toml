@@ -12,6 +12,7 @@ openai = "^0.27.8"
 python-dotenv = "^1.0.0"
 langchain = "^0.0.258"
 psycopg = {extras = ["binary"], version = "^3.1.10"}
+rich = "^13.5.2"
 
 
 [build-system]

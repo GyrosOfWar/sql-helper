@@ -8,21 +8,39 @@ from dotenv import load_dotenv
 import os
 import psycopg
 from psycopg import Cursor
+from rich.console import Console
+from rich.table import Table
+from rich.prompt import Prompt
+from rich.syntax import Syntax
 
 
-def execute_query(cursor: Cursor, query: str):
-    print(f"Executing query:\n{query}")
+def execute_query(cursor: Cursor, query: str, max_results=10):
+    console = Console()
+    syntax = Syntax(query, "sql")
+    console.print("[bold blue]Executing query:[/bold blue]")
+    console.print(syntax)
 
     cursor.execute(query)
-    results = cursor.fetchmany(10)
+    results = cursor.fetchmany(max_results)
+    table = Table(show_header=True, header_style="bold magenta")
+    if cursor.description is not None:
+        for column in cursor.description:
+            table.add_column(column[0])
     for row in results:
-        print(row)
-    print("Do you want to see all the results?")
-    answer = input(">> ")
-    if answer.lower() in ["yes", "y"]:
-        results = cursor.fetchall()
-        for row in results:
-            print(row)
+        row = [str(cell) for cell in row]
+        table.add_row(*row)
+    console.print(table)
+
+    if len(results) >= max_results:
+        answer = Prompt.ask(
+            "Do you want to see all the results?", choices=["yes", "no"]
+        )
+        if answer == "yes":
+            results = cursor.fetchall()
+            for row in results:
+                row = [str(cell) for cell in row]
+                table.add_row(*row)
+            console.print(table)
 
 
 def main():
@@ -52,7 +70,7 @@ def main():
             query_template,
         ]
     )
-    query = input("What do you want to seach for? >> ")
+    query = Prompt.ask("Enter your question")
 
     llm = ChatOpenAI(openai_api_key=api_key)
     result = llm(template.format_messages(schema=db_schema, query=query))
