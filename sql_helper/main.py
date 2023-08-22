@@ -29,9 +29,13 @@ def main():
     load_dotenv()
     api_key = os.getenv("OPENAI_API_KEY")
     if not api_key:
-        raise Exception("API key not found")
+        raise Exception("Please set the `OPENAI_API_KEY` environment variable")
 
-    db_schema = open("ddl.sql").read()
+    ddl_path = os.getenv("DDL_PATH")
+    if not ddl_path:
+        raise Exception("Please set the `DDL_PATH` environment variable")
+
+    db_schema = open(ddl_path).read()
     system_template = SystemMessagePromptTemplate.from_template(
         """You are a helpful SQL assistant. Your job is to help the user write SQL queries.
            The user will provide a database schema and a natural language query. 
